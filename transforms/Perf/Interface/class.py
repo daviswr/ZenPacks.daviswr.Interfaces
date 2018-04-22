@@ -61,8 +61,8 @@ if (evt.eventKey == 'ifHCInOctets_ifHCInOctets|Throughput'
     # Drop if gig+ interface linked at a lower speed
     # Will only work with some vendors
     elif ((evt.component.lower().startswith('g')
-         or evt.component.lower().startswith('te')
-         or evt.component.lower().startswith('x'))
+            or evt.component.lower().startswith('te')
+            or evt.component.lower().startswith('x'))
             and current <= 100000000):
         evt._action = 'drop'
     # Drop if span port
