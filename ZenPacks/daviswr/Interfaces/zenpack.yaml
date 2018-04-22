@@ -1,0 +1,1634 @@
+name: ZenPacks.daviswr.Interfaces
+
+device_classes:
+  DEFAULTS:
+    remove: no
+  /:
+    zProperties:
+      # Developer's personal preference
+      zInterfaceMapIgnoreNames: '(ch.|docker|Extension|Filter|ISATAP|Kernel
+ Debug|mgi|Miniport|RAS Async|Scheduler|Software Loopback|veth|vlan)'
+      zInterfaceMapIgnoreTypes: '(100BaseVG|Encapsulation Interface|HIPPI|
+IEEE 802.3ad Link Aggregate|Layer 2 Virtual LAN using 802.1Q|modem|Other|ppp|
+propVirtual|softwareLoopback|Voice)'
+
+    templates:
+      DEFAULTS:
+        targetPythonClass: Products.ZenModel.IpInterface
+
+      # /Devices/ethernetCsmacd
+      # Seen to work with Transparent bridge interface,
+      # Radio Spread Spectrum (802.11)
+      ethernetCsmacd:
+        description: 'Interface performance using 32-bit counters from
+ IF-MIB::ifTable'
+        datasources:
+          DEFAULTS:
+            type: SNMP
+            
+          ifInOctets:
+            oid: .1.3.6.1.2.1.2.2.1.10
+            datapoints:
+              ifInOctets:
+                description: 'The total number of octets received on the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutOctets:
+            oid: .1.3.6.1.2.1.2.2.1.16
+            datapoints:
+              ifOutOctets:
+                description: 'The total number of octets transmitted out of the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInUcastPkts:
+            oid: .1.3.6.1.2.1.2.2.1.11
+            datapoints:
+              ifInUcastPkts:
+                description: 'The number of packets which were not addressed to
+ a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutUcastPkts:
+            oid: .1.3.6.1.2.1.2.2.1.17
+            datapoints:
+              ifOutUcastPkts:
+                description: 'The total number of packets transmitted which were
+ not addressed to a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInNUcastPkts:
+            oid: .1.3.6.1.2.1.2.2.1.12
+            datapoints:
+              ifInNUcastPkts:
+                description: 'The number of packets which were addressed to a
+ multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutNUcastPkts:
+            oid: .1.3.6.1.2.1.2.2.1.18
+            datapoints:
+              ifOutNUcastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInErrors:
+            oid: .1.3.6.1.2.1.2.2.1.14
+            datapoints:
+              ifInErrors:
+                description: 'The number of inbound packets that contained
+ errors preventing them from being deliverable'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutErrors:
+            oid: .1.3.6.1.2.1.2.2.1.20
+            datapoints:
+              ifOutErrors:
+                description: 'The number of outbound packets that could not be
+ transmitted because of errors'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.13
+            datapoints:
+              ifInDiscards:
+                description: 'The number of inbound packets which were chosen to
+ be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.19
+            datapoints:
+              ifOutDiscards:
+                description: 'The number of outbound packets which were chosen
+ to be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutQLen:
+            oid: .1.3.6.1.2.1.2.2.1.21
+            datapoints:
+              ifOutQLen:
+                description: The length of the output packet queue (in packets)
+                rrdtype: GAUGE
+                rrdmin: 0
+
+          # Combined with a threshold and event transform,
+          # this dynamically updates the model during each polling cycle.
+          # Not sure if it's possible to replicate Zenoss <5's RRD create
+          # command especially considering it wouldn't be relevant in 5+
+          ifOperStatus:
+            oid: .1.3.6.1.2.1.2.2.1.8
+            datapoints:
+              ifOperStatus:
+                description:
+                rrdtype: GAUGE
+
+      # /Devices/ethernetCsmacd
+        graphs:
+          DEFAULTS:
+            height: 100
+            width: 500
+            miny: 0
+
+          Throughput:
+            units: bits/sec
+            base: true
+            graphpoints:
+              Inbound:
+                dpName: ifInOctets_ifInOctets
+                lineType: AREA
+                stacked: true
+                rpn: 8,*
+                colorindex: 0
+              Outbound:
+                dpName: ifOutOctets_ifOutOctets
+                lineType: LINE
+                lineWidth: 1
+                rpn: 8,*
+                colorindex: 1
+
+          Unicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifInUcastPkts_ifInUcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifOutUcastPkts_ifOutUcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Non-unicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifInNUcastPkts_ifInNUcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifOutNUcastPkts_ifOutNUcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Errors:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInErrors_ifInErrors
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutErrors_ifOutErrors
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Drops:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInDiscards_ifInDiscards
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutDiscards_ifOutDiscards
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Queue Length:
+            units: packets
+            graphpoints:
+              Output:
+                dpName: ifOutQLen_ifOutQLen
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+      # /Devices/ethernetCsmacd
+        thresholds:
+          # This is the Zenoss default
+          ifOperStatusChange:
+            type: ValueChangeThreshold
+            dsnames:
+              - ifOperStatus_ifOperStatus
+            severity: 2
+            enabled: true
+            eventClass: /Status/Perf
+
+          Throughput:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInOctets_ifInOctets
+              - ifOutOctets_ifOutOctets
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: (here.speed) / 8 * .90
+
+          Multicast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInNUcastPkts_ifInNUcastPkts
+              - ifOutNUcastPkts_ifOutNUcastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 250
+
+          Errors:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInErrors_ifInErrors
+              - ifOutErrors_ifOutErrors
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            # Average one per minute
+            maxval: 0.017
+
+          Drops:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInDiscards_ifInDiscards
+              - ifOutDiscards_ifOutDiscards
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 10
+
+
+      # /Devices/ethernetCsmacd_64
+      # Seen to work with propVirtual_64, softwareLoopback_64, modem_64,
+      # Encapsulation Interface_64, Gigabit Ethernet_64
+      ethernetCsmacd_64:
+        description: Interface performance using 64-bit counters from IF-MIB
+        datasources:
+          DEFAULTS:
+            type: SNMP
+            
+          ifHCInOctets:
+            oid: .1.3.6.1.2.1.31.1.1.1.6
+            datapoints:
+              ifHCInOctets:
+                description: 'The total number of octets received on the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutOctets:
+            oid: .1.3.6.1.2.1.31.1.1.1.10
+            datapoints:
+              ifHCOutOctets:
+                description: 'The total number of octets transmitted out of the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCInUcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.7
+            datapoints:
+              ifHCInUcastPkts:
+                description: 'The number of packets which were not addressed to
+ a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutUcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.11
+            datapoints:
+              ifHCOutUcastPkts:
+                description: 'The total number of packets transmitted which were
+ not addressed to a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCInMulticastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.8
+            datapoints:
+              ifHCInMulticastPkts:
+                description: 'The number of packets which were addressed to a
+ multicast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutMulticastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.12
+            datapoints:
+              ifHCOutMulticastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a multicast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCInBroadcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.9
+            datapoints:
+              ifHCInBroadcastPkts:
+                description: 'The number of packets which were addressed to a
+ broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutBroadcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.13
+            datapoints:
+              ifHCOutBroadcastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInErrors:
+            oid: .1.3.6.1.2.1.2.2.1.14
+            datapoints:
+              ifInErrors:
+                description: 'The number of inbound packets that contained
+ errors preventing them from being deliverable'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutErrors:
+            oid: .1.3.6.1.2.1.2.2.1.20
+            datapoints:
+              ifOutErrors:
+                description: 'The number of outbound packets that could not be
+ transmitted because of errors'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.13
+            datapoints:
+              ifInDiscards:
+                description: 'The number of inbound packets which were chosen to
+ be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.19
+            datapoints:
+              ifOutDiscards:
+                description: 'The number of outbound packets which were chosen
+ to be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          # Not supported by Cisco or Dell switches
+          ifOutQLen:
+            oid: .1.3.6.1.2.1.2.2.1.21
+            datapoints:
+              ifOutQLen:
+                description: The length of the output packet queue (in packets)
+                rrdtype: GAUGE
+                rrdmin: 0
+
+          # Combined with a threshold and event transform,
+          # this dynamically updates the model during each polling cycle.
+          ifOperStatus:
+            oid: .1.3.6.1.2.1.2.2.1.8
+            datapoints:
+              ifOperStatus:
+                description:
+                rrdtype: GAUGE
+
+      # /Devices/ethernetCsmacd_64
+        graphs:
+          DEFAULTS:
+            height: 100
+            width: 500
+            miny: 0
+
+          Throughput:
+            units: bits/sec
+            base: true
+            graphpoints:
+              Inbound:
+                dpName: ifHCInOctets_ifHCInOctets
+                lineType: AREA
+                stacked: true
+                rpn: 8,*
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutOctets_ifHCOutOctets
+                lineType: LINE
+                lineWidth: 1
+                rpn: 8,*
+                colorindex: 1
+
+          Unicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifHCInUcastPkts_ifHCInUcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutUcastPkts_ifHCOutUcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Multicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifHCInMulticastPkts_ifHCInMulticastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutMulticastPkts_ifHCOutMulticastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Broadcast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifHCInBroadcastPkts_ifHCInBroadcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutBroadcastPkts_ifHCOutBroadcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Errors:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInErrors_ifInErrors
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutErrors_ifOutErrors
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Drops:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInDiscards_ifInDiscards
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutDiscards_ifOutDiscards
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Queue Length:
+            units: packets
+            graphpoints:
+              Output:
+                dpName: ifOutQLen_ifOutQLen
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+      # /Devices/ethernetCsmacd_64
+        thresholds:
+          # This is the Zenoss default
+          ifOperStatusChange:
+            type: ValueChangeThreshold
+            dsnames:
+              - ifOperStatus_ifOperStatus
+            severity: 2
+            enabled: true
+            eventClass: /Status/Perf
+
+          Throughput:
+            type: MinMaxThreshold
+            dsnames:
+              - ifHCInOctets_ifHCInOctets
+              - ifHCOutOctets_ifHCOutOctets
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: (here.speed) / 8 * .90
+
+          Multicast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifHCInMulticastPkts_ifHCInMulticastPkts
+              - ifHCOutMulticastPkts_ifHCOutMulticastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 250
+
+          Broadcast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifHCInBroadcastPkts_ifHCInBroadcastPkts
+              - ifHCOutBroadcastPkts_ifHCOutBroadcastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 100
+
+          Errors:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInErrors_ifInErrors
+              - ifOutErrors_ifOutErrors
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            # Average one per minute
+            maxval: 0.017
+
+          Drops:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInDiscards_ifInDiscards
+              - ifOutDiscards_ifOutDiscards
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 10
+
+            
+  /Network:
+    templates:
+      # /Devices/Network/ethernetCsmacd_64
+      ethernetCsmacd_64:
+        description: 'Interface performance using 64-bit counters from IF-MIB
+ without queue length'
+        targetPythonClass: Products.ZenModel.IpInterface
+        datasources:
+          DEFAULTS:
+            type: SNMP
+            
+          ifHCInOctets:
+            oid: .1.3.6.1.2.1.31.1.1.1.6
+            datapoints:
+              ifHCInOctets:
+                description: 'The total number of octets received on the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutOctets:
+            oid: .1.3.6.1.2.1.31.1.1.1.10
+            datapoints:
+              ifHCOutOctets:
+                description: 'The total number of octets transmitted out of the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCInUcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.7
+            datapoints:
+              ifHCInUcastPkts:
+                description: 'The number of packets which were not addressed to
+ a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutUcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.11
+            datapoints:
+              ifHCOutUcastPkts:
+                description: 'The total number of packets transmitted which were
+ not addressed to a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCInMulticastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.8
+            datapoints:
+              ifHCInMulticastPkts:
+                description: 'The number of packets which were addressed to a
+ multicast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutMulticastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.12
+            datapoints:
+              ifHCOutMulticastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a multicast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCInBroadcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.9
+            datapoints:
+              ifHCInBroadcastPkts:
+                description: 'The number of packets which were addressed to a
+ broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutBroadcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.13
+            datapoints:
+              ifHCOutBroadcastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInErrors:
+            oid: .1.3.6.1.2.1.2.2.1.14
+            datapoints:
+              ifInErrors:
+                description: 'The number of inbound packets that contained
+ errors preventing them from being deliverable'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutErrors:
+            oid: .1.3.6.1.2.1.2.2.1.20
+            datapoints:
+              ifOutErrors:
+                description: 'The number of outbound packets that could not be
+ transmitted because of errors'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.13
+            datapoints:
+              ifInDiscards:
+                description: 'The number of inbound packets which were chosen to
+ be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.19
+            datapoints:
+              ifOutDiscards:
+                description: 'The number of outbound packets which were chosen
+ to be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          # Combined with a threshold and event transform,
+          # this dynamically updates the model during each polling cycle.
+          ifOperStatus:
+            oid: .1.3.6.1.2.1.2.2.1.8
+            datapoints:
+              ifOperStatus:
+                description:
+                rrdtype: GAUGE
+
+      # /Devices/Network/ethernetCsmacd_64
+        graphs:
+          DEFAULTS:
+            height: 100
+            width: 500
+            miny: 0
+
+          Throughput:
+            units: bits/sec
+            base: true
+            graphpoints:
+              Inbound:
+                dpName: ifHCInOctets_ifHCInOctets
+                lineType: AREA
+                stacked: true
+                rpn: 8,*
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutOctets_ifHCOutOctets
+                lineType: LINE
+                lineWidth: 1
+                rpn: 8,*
+                colorindex: 1
+
+          Unicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifHCInUcastPkts_ifHCInUcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutUcastPkts_ifHCOutUcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Multicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifHCInMulticastPkts_ifHCInMulticastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutMulticastPkts_ifHCOutMulticastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Broadcast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifHCInBroadcastPkts_ifHCInBroadcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutBroadcastPkts_ifHCOutBroadcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Errors:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInErrors_ifInErrors
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutErrors_ifOutErrors
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Drops:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInDiscards_ifInDiscards
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutDiscards_ifOutDiscards
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+      # /Devices/Network/ethernetCsmacd_64
+        thresholds:
+          # This is the Zenoss default
+          ifOperStatusChange:
+            type: ValueChangeThreshold
+            dsnames:
+              - ifOperStatus_ifOperStatus
+            severity: 2
+            enabled: true
+            eventClass: /Status/Perf
+
+          Throughput:
+            type: MinMaxThreshold
+            dsnames:
+              - ifHCInOctets_ifHCInOctets
+              - ifHCOutOctets_ifHCOutOctets
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: (here.speed) / 8 * .90
+
+          Multicast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifHCInMulticastPkts_ifHCInMulticastPkts
+              - ifHCOutMulticastPkts_ifHCOutMulticastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 250
+
+          Broadcast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifHCInBroadcastPkts_ifHCInBroadcastPkts
+              - ifHCOutBroadcastPkts_ifHCOutBroadcastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 100
+
+          Errors:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInErrors_ifInErrors
+              - ifOutErrors_ifOutErrors
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            # Average one per minute
+            maxval: 0.017
+
+          Drops:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInDiscards_ifInDiscards
+              - ifOutDiscards_ifOutDiscards
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 10
+
+
+  /Network/Firewall/ScreenOS:
+    zProperties:
+      zInterfaceMapIgnoreTypes: (Encapsulation Interface|modem|softwareLoopback)
+
+
+  /Network/Switch/Dell:
+    templates:
+      # /Devices/Network/Switch/Dell/ethernetCsmacd
+      ethernetCsmacd:
+        description: 'Dell PowerConnect interface performance with 64-bit octet
+ counters'
+        targetPythonClass: Products.ZenModel.IpInterface
+        datasources:
+          DEFAULTS:
+            type: SNMP
+            
+          ifHCInOctets:
+            oid: .1.3.6.1.2.1.31.1.1.1.6
+            datapoints:
+              ifHCInOctets:
+                description: 'The total number of octets received on the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifHCOutOctets:
+            oid: .1.3.6.1.2.1.31.1.1.1.10
+            datapoints:
+              ifHCOutOctets:
+                description: 'The total number of octets transmitted out of the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInUcastPkts:
+            oid: .1.3.6.1.2.1.2.2.1.11
+            datapoints:
+              ifInUcastPkts:
+                description: 'The number of packets which were not addressed to
+ a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutUcastPkts:
+            oid: .1.3.6.1.2.1.2.2.1.17
+            datapoints:
+              ifOutUcastPkts:
+                description: 'The total number of packets transmitted which were
+ not addressed to a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInMulticastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.2
+            datapoints:
+              ifInMulticastPkts:
+                description: 'The number of packets which were addressed to a
+ multicast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutMulticastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.4
+            datapoints:
+              ifOutMulticastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a multicast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInBroadcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.3
+            datapoints:
+              ifInBroadcastPkts:
+                description: 'The number of packets which were addressed to a
+ broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutBroadcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.5
+            datapoints:
+              ifOutBroadcastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInErrors:
+            oid: .1.3.6.1.2.1.2.2.1.14
+            datapoints:
+              ifInErrors:
+                description: 'The number of inbound packets that contained
+ errors preventing them from being deliverable'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutErrors:
+            oid: .1.3.6.1.2.1.2.2.1.20
+            datapoints:
+              ifOutErrors:
+                description: 'The number of outbound packets that could not be
+ transmitted because of errors'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.13
+            datapoints:
+              ifInDiscards:
+                description: 'The number of inbound packets which were chosen to
+ be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.19
+            datapoints:
+              ifOutDiscards:
+                description: 'The number of outbound packets which were chosen
+ to be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          # Combined with a threshold and event transform,
+          # this dynamically updates the model during each polling cycle.
+          ifOperStatus:
+            oid: .1.3.6.1.2.1.2.2.1.8
+            datapoints:
+              ifOperStatus:
+                description:
+                rrdtype: GAUGE
+
+      # /Devices/Network/Switch/Dell/ethernetCsmacd
+        graphs:
+          DEFAULTS:
+            height: 100
+            width: 500
+            miny: 0
+
+          Throughput:
+            units: bits/sec
+            base: true
+            graphpoints:
+              Inbound:
+                dpName: ifHCInOctets_ifHCInOctets
+                lineType: AREA
+                stacked: true
+                rpn: 8,*
+                colorindex: 0
+              Outbound:
+                dpName: ifHCOutOctets_ifHCOutOctets
+                lineType: LINE
+                lineWidth: 1
+                rpn: 8,*
+                colorindex: 1
+
+          Unicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifInUcastPkts_ifInUcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifOutUcastPkts_ifOutUcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Multicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifInMulticastPkts_ifInMulticastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifOutMulticastPkts_ifOutMulticastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Broadcast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifInBroadcastPkts_ifInBroadcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifOutBroadcastPkts_ifOutBroadcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Errors:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInErrors_ifInErrors
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutErrors_ifOutErrors
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Drops:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInDiscards_ifInDiscards
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutDiscards_ifOutDiscards
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+      # /Devices/Network/Switch/Dell/ethernetCsmacd
+        thresholds:
+          # This is the Zenoss default
+          ifOperStatusChange:
+            type: ValueChangeThreshold
+            dsnames:
+              - ifOperStatus_ifOperStatus
+            severity: 2
+            enabled: true
+            eventClass: /Status/Perf
+
+          Throughput:
+            type: MinMaxThreshold
+            dsnames:
+              - ifHCInOctets_ifHCInOctets
+              - ifHCOutOctets_ifHCOutOctets
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: (here.speed) / 8 * .90
+
+          Multicast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInMulticastPkts_ifInMulticastPkts
+              - ifOutMulticastPkts_ifOutMulticastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 250
+
+          Broadcast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInBroadcastPkts_ifInBroadcastPkts
+              - ifOutBroadcastPkts_ifOutBroadcastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 100
+
+          Errors:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInErrors_ifInErrors
+              - ifOutErrors_ifOutErrors
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            # Average one per minute
+            maxval: 0.017
+
+          Drops:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInDiscards_ifInDiscards
+              - ifOutDiscards_ifOutDiscards
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 10
+
+
+  /Server/Windows:
+    templates:
+      # /Server/Windows/ethernetCsmacd
+      ethernetCsmacd:
+        description: 'Windows interface performance using 32-bit counters from
+ IF-MIB'
+        targetPythonClass: Products.ZenModel.IpInterface
+        datasources:
+          DEFAULTS:
+            type: SNMP
+            
+          ifInOctets:
+            oid: .1.3.6.1.2.1.2.2.1.10
+            datapoints:
+              ifInOctets:
+                description: 'The total number of octets received on the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutOctets:
+            oid: .1.3.6.1.2.1.2.2.1.16
+            datapoints:
+              ifOutOctets:
+                description: 'The total number of octets transmitted out of the
+ interface'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInUcastPkts:
+            oid: .1.3.6.1.2.1.2.2.1.11
+            datapoints:
+              ifInUcastPkts:
+                description: 'The number of packets which were not addressed to
+ a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutUcastPkts:
+            oid: .1.3.6.1.2.1.2.2.1.17
+            datapoints:
+              ifOutUcastPkts:
+                description: 'The total number of packets transmitted which were
+ not addressed to a multicast or broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInMulticastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.2
+            datapoints:
+              ifInMulticastPkts:
+                description: 'The number of packets which were addressed to a
+ multicast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutMulticastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.4
+            datapoints:
+              ifOutMulticastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a multicast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInBroadcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.3
+            datapoints:
+              ifInBroadcastPkts:
+                description: 'The number of packets which were addressed to a
+ broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutBroadcastPkts:
+            oid: .1.3.6.1.2.1.31.1.1.1.5
+            datapoints:
+              ifOutBroadcastPkts:
+                description: 'The total number of packets transmitted which were
+ addressed to a broadcast address'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInErrors:
+            oid: .1.3.6.1.2.1.2.2.1.14
+            datapoints:
+              ifInErrors:
+                description: 'The number of inbound packets that contained
+ errors preventing them from being deliverable'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutErrors:
+            oid: .1.3.6.1.2.1.2.2.1.20
+            datapoints:
+              ifOutErrors:
+                description: 'The number of outbound packets that could not be
+ transmitted because of errors'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifInDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.13
+            datapoints:
+              ifInDiscards:
+                description: 'The number of inbound packets which were chosen to
+ be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutDiscards:
+            oid: .1.3.6.1.2.1.2.2.1.19
+            datapoints:
+              ifOutDiscards:
+                description: 'The number of outbound packets which were chosen
+ to be discarded even though no errors had been detected'
+                rrdtype: DERIVE
+                rrdmin: 0
+
+          ifOutQLen:
+            oid: .1.3.6.1.2.1.2.2.1.21
+            datapoints:
+              ifOutQLen:
+                description: The length of the output packet queue (in packets)
+                rrdtype: GAUGE
+                rrdmin: 0
+
+          # Combined with a threshold and event transform,
+          # this dynamically updates the model during each polling cycle.
+          ifOperStatus:
+            oid: .1.3.6.1.2.1.2.2.1.8
+            datapoints:
+              ifOperStatus:
+                description:
+                rrdtype: GAUGE
+
+      # /Server/Windows/ethernetCsmacd
+        graphs:
+          DEFAULTS:
+            height: 100
+            width: 500
+            miny: 0
+
+          Throughput:
+            units: bits/sec
+            base: true
+            graphpoints:
+              Inbound:
+                dpName: ifInOctets_ifInOctets
+                lineType: AREA
+                stacked: true
+                rpn: 8,*
+                colorindex: 0
+              Outbound:
+                dpName: ifOutOctets_ifOutOctets
+                lineType: LINE
+                lineWidth: 1
+                rpn: 8,*
+                colorindex: 1
+
+          Unicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifInUcastPkts_ifInUcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifOutUcastPkts_ifOutUcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Multicast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifInMulticastPkts_ifInMulticastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifOutMulticastPkts_ifOutMulticastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Broadcast Packets:
+            units: packets/sec
+            graphpoints:
+              Inbound:
+                dpName: ifInBroadcastPkts_ifInBroadcastPkts
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Outbound:
+                dpName: ifOutBroadcastPkts_ifOutBroadcastPkts
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Errors:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInErrors_ifInErrors
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutErrors_ifOutErrors
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Drops:
+            units: packets/sec
+            graphpoints:
+              Input:
+                dpName: ifInDiscards_ifInDiscards
+                lineType: AREA
+                stacked: true
+                colorindex: 0
+              Output:
+                dpName: ifOutDiscards_ifOutDiscards
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+          Queue Length:
+            units: packets
+            graphpoints:
+              Output:
+                dpName: ifOutQLen_ifOutQLen
+                lineType: LINE
+                lineWidth: 1
+                colorindex: 1
+
+      # /Server/Windows/ethernetCsmacd
+        thresholds:
+          # This is the Zenoss default
+          ifOperStatusChange:
+            type: ValueChangeThreshold
+            dsnames:
+              - ifOperStatus_ifOperStatus
+            severity: 2
+            enabled: true
+            eventClass: /Status/Perf
+
+          Throughput:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInOctets_ifInOctets
+              - ifOutOctets_ifOutOctets
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: (here.speed) / 8 * .90
+
+          Multicast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInMulticastPkts_ifInMulticastPkts
+              - ifOutMulticastPkts_ifOutMulticastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 250
+
+          Broadcast:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInBroadcastPkts_ifInBroadcastPkts
+              - ifOutBroadcastPkts_ifOutBroadcastPkts
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 100
+
+          Errors:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInErrors_ifInErrors
+              - ifOutErrors_ifOutErrors
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            # Average one per minute
+            maxval: 0.017
+
+          Drops:
+            type: MinMaxThreshold
+            dsnames:
+              - ifInDiscards_ifInDiscards
+              - ifOutDiscards_ifOutDiscards
+            severity: 3
+            enabled: true
+            eventClass: /Perf/Interface
+            maxval: 10
+
+
+
+event_classes:
+  /Status/Perf:
+    remove: false
+    # Modified version of the original Zenoss transform
+    transform: |-
+      # SET OPERSTATUS ON IPINTERFACE COMPONENT
+      if evt.eventKey == 'ifOperStatus_ifOperStatus|ifOperStatusChange':
+          evt._action = 'drop'
+          operStatus = int(float(getattr(evt, 'current', '0')))
+          if component is not None:
+              if component.operStatus != operStatus:
+                  @transact
+                  def updateDb():
+                      component.operStatus = operStatus
+                  updateDb()
+
+  /Perf/Interface:
+    remove: false
+    transform: |-
+      import re
+      
+      DUPLEX_UNKNOWN = 1
+      DUPLEX_HALF = 2
+      DUPLEX_FULL = 3
+      
+      current = float(getattr(evt, 'current', '0.0'))
+      
+      # Determine direction
+      if evt.eventKey.startswith('ifHCOut') or evt.eventKey.startswith('ifOut'):
+          direction = 'output'
+      elif evt.eventKey.startswith('ifHCIn') or evt.eventKey.startswith('ifIn'):
+          direction = 'input'
+      
+      # Zenoss 4.2 replaces / in evt.component with _
+      # even though it displays / in the event
+      match = re.search(r'^(\D{2})\D+(\d*_?\d*_?\d*)$', evt.component)
+      if match:
+          evt.component = re.sub('_', '/', evt.component)
+      if_name = evt.component
+      
+      # Find short name of interface, if possible
+      match = re.search(r'^(\D{2})\D+(\d*/?\d*/?\d*)$', if_name)
+      if match and device.getDeviceClassPath().count('Server') == 0:
+          if_name_short = match.groups()[0] + match.groups()[1]
+      else:
+          if_name_short = if_name
+      
+      # Find interface's bandwidth to get utilization as percentage
+      # Also interface description and duplex
+      duplex = DUPLEX_UNKNOWN
+      speed = 0
+      descr = ''
+      for iface in device.os.interfaces():
+          if iface.name() == if_name:
+              duplex = iface.duplex
+              speed = iface.speed
+              if len(iface.description) > 0:
+                  descr = '(%s)' % (iface.description)
+              break
+      
+      # Throughput threshold
+      if (evt.eventKey == 'ifHCInOctets_ifHCInOctets|Throughput'
+              or evt.eventKey == 'ifHCOutOctets_ifHCOutOctets|Throughput'
+              or evt.eventKey == 'ifInOctets_ifInOctets|Throughput'
+              or evt.eventKey == 'ifOutOctets_ifOutOctets|Throughput'):
+          # Current value in bits
+          current = current * 8
+          if current > 1000000000:
+              usage = '%3.1f Gbps' % (current / 1000000000)
+          elif current > 1000000:
+              usage = '%3.1f Mbps' % (current / 1000000)
+          elif current > 1000:
+              usage = '%3.1f Kbps' % (current / 1000)
+          else:
+              usage = '%3.1f bps' % (current)
+      
+          # Drop if interface speed unknown
+          if 0 == speed:
+              evt._action = 'drop'
+          # Drop if gig+ interface linked at a lower speed
+          # Will only work with some vendors
+          elif ((evt.component.lower().startswith('g')
+               or evt.component.lower().startswith('te')
+               or evt.component.lower().startswith('x'))
+                  and current <= 100000000):
+              evt._action = 'drop'
+          # Drop if span port
+          elif descr.lower().find(' span') > -1:
+              evt._action = 'drop'
+          else:
+              util = (current / speed) * 100
+              # If it thinks more than 100% of the link is in use,
+              # it's not modeled correctly
+              if util > 100:
+                  log.info(
+                      '%s %s speed modeled incorrectly',
+                      device.name(),
+                      if_name_short
+                      )
+                  # Model in background so transform isn't delayed
+                  #device.collectDevice(background=True)
+                  evt._action = 'drop'
+              else:
+                  evt.summary = '%s %s %s utilization at %3.1f%% (%s)' % (
+                      if_name_short,
+                      descr,
+                      direction,
+                      util,
+                      usage
+                      )
+      
+      # Broadcast/Multicast threshold
+      elif (evt.eventKey == 'ifHCInMulticastPkts_ifHCInMulticastPkts|Multicast'
+            or evt.eventKey == 'ifHCInBroadcastPkts_ifHCInBroadcastPkts|Broadcast'
+            or evt.eventKey == 'ifInMulticastPkts_ifInMulticastPkts|Multicast'
+            or evt.eventKey == 'ifInBroadcastPkts_ifInBroadcastPkts|Broadcast'
+            or evt.eventKey == 'ifInNUcastPkts_ifInNUcastPkts|Multicast'):
+          traffic = evt.eventKey.split('|')[1].lower()
+          evt.summary = '%s %s %s %s rate at %3.0f packets per second' % (
+              if_name_short,
+              descr,
+              direction,
+              traffic,
+              current
+              )
+          # Drop if Port Channel interface
+          if evt.component.startswith('Port-channel'):
+              evt._action = 'drop'
+          else:
+              # Drop if port goes to another switch
+              # Requires custom CDP/LLDP neighbor modeler
+              for neighbor in device.neighbor_switches():
+                  if neighbor.location == evt.component:
+                      evt._action = 'drop'
+                      break
+      
+      # Error threshold
+      elif (evt.eventKey == 'ifInErrors_ifInErrors|Errors'
+            or evt.eventKey == 'ifOutErrors_ifOutErrors|Errors'):
+      
+          # Nothing we can do about errors on a half-duplex port
+          if duplex == DUPLEX_HALF:
+              evt._action = 'drop'
+          # Hairpinned traffic on an F5 BIG-IP LTM causes input errors
+          # Nothing to do about it
+          elif device and device.getDeviceClassPath().count('F5') > 0:
+              evt._action = 'drop'
+          else:
+              if current < 1:
+                  current = current * 60
+                  time = 'minute'
+              else:
+                  time = 'second'
+              evt.summary = '%s %s experiencing %3.0f %s errors per %s' % (
+                  if_name_short,
+                  descr,
+                  current,
+                  direction,
+                  time
+                  )
+      
+      # Discard threshold
+      elif (evt.eventKey == 'ifInDiscards_ifInDiscards|Drops'
+            or evt.eventKey == 'ifOutDiscards_ifOutDiscards|Drops'):
+          if current < 1:
+              current = current * 60
+              time = 'minute'
+          else:
+              time = 'second'
+          evt.summary = '%s %s dropping %3.0f %s packets per %s' % (
+              if_name_short,
+              descr,
+              current,
+              direction,
+              time
+              )
