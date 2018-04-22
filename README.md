@@ -1,6 +1,6 @@
 # ZenPacks.daviswr.Interfaces
 
-My own take on the ethernetCsmacd family of templates to include multicast rates, broadcast rates, drop rastes, queue length, and more thresholds.
+My own take on the ethernetCsmacd family of templates to include multicast rates, broadcast rates, drop rates, queue length, and more thresholds.
 
 ## Important
 
