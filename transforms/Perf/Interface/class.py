@@ -66,7 +66,7 @@ if (evt.eventKey == 'ifHCInOctets_ifHCInOctets|Throughput'
             and current <= 100000000):
         evt._action = 'drop'
     # Drop if span port
-    elif descr.lower().find(' span') > -1:
+    elif ' span' in descr.lower():
         evt._action = 'drop'
     else:
         util = (current / speed) * 100
