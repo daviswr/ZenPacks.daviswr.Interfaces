@@ -1498,7 +1498,7 @@ event_classes:
       
       # Find short name of interface, if possible
       match = re.search(r'^(\D{2})\D+(\d*/?\d*/?\d*)$', if_name)
-      if match and device.getDeviceClassPath().count('Server') == 0:
+      if match and 'Server' in device.getDeviceClassPath():
           if_name_short = match.groups()[0] + match.groups()[1]
       else:
           if_name_short = if_name
@@ -1601,7 +1601,7 @@ event_classes:
               evt._action = 'drop'
           # Hairpinned traffic on an F5 BIG-IP LTM causes input errors
           # Nothing to do about it
-          elif device and device.getDeviceClassPath().count('F5') > 0:
+          elif device and 'F5' in device.getDeviceClassPath():
               evt._action = 'drop'
           else:
               if current < 1:
