@@ -7,13 +7,11 @@ DUPLEX_FULL = 3
 current = float(getattr(evt, 'current', '0.0'))
 
 # Determine direction
-if evt.eventKey.startswith('ifHCOut') or evt.eventKey.startswith('ifOut'):
+if 'ifHCOut' in evt.eventKey or 'ifOut' in evt.eventKey:
     direction = 'output'
-elif evt.eventKey.startswith('ifHCIn') or evt.eventKey.startswith('ifIn'):
+elif 'ifHCIn' in evt.eventKey or 'ifIn' in evt.eventKey:
     direction = 'input'
 
-# Zenoss 4.2 replaces / in evt.component with _
-# even though it displays / in the event
 match = re.search(r'^(\D{2})\D+(\d*_?\d*_?\d*)$', evt.component)
 if match:
     evt.component = re.sub('_', '/', evt.component)
@@ -40,10 +38,7 @@ for iface in device.os.interfaces():
         break
 
 # Throughput threshold
-if (evt.eventKey == 'ifHCInOctets_ifHCInOctets|Throughput'
-        or evt.eventKey == 'ifHCOutOctets_ifHCOutOctets|Throughput'
-        or evt.eventKey == 'ifInOctets_ifInOctets|Throughput'
-        or evt.eventKey == 'ifOutOctets_ifOutOctets|Throughput'):
+if evt.eventKey.endswith('Octets|Throughput'):
     # Current value in bits
     current = current * 8
     if current > 1000000000:
@@ -91,11 +86,8 @@ if (evt.eventKey == 'ifHCInOctets_ifHCInOctets|Throughput'
                 )
 
 # Broadcast/Multicast threshold
-elif (evt.eventKey == 'ifHCInMulticastPkts_ifHCInMulticastPkts|Multicast'
-      or evt.eventKey == 'ifHCInBroadcastPkts_ifHCInBroadcastPkts|Broadcast'
-      or evt.eventKey == 'ifInMulticastPkts_ifInMulticastPkts|Multicast'
-      or evt.eventKey == 'ifInBroadcastPkts_ifInBroadcastPkts|Broadcast'
-      or evt.eventKey == 'ifInNUcastPkts_ifInNUcastPkts|Multicast'):
+elif (evt.eventKey.endswith('Pkts|Multicast')
+        or evt.eventKey.endswith('Pkts|Broadcast')):
     traffic = evt.eventKey.split('|')[1].lower()
     evt.summary = '%s %s %s %s rate at %3.0f packets per second' % (
         if_name_short,
@@ -116,9 +108,7 @@ elif (evt.eventKey == 'ifHCInMulticastPkts_ifHCInMulticastPkts|Multicast'
                 break
 
 # Error threshold
-elif (evt.eventKey == 'ifInErrors_ifInErrors|Errors'
-      or evt.eventKey == 'ifOutErrors_ifOutErrors|Errors'):
-
+elif evt.eventKey.endswith('Errors|Errors'):
     # Nothing we can do about errors on a half-duplex port
     if duplex == DUPLEX_HALF:
         evt._action = 'drop'
@@ -141,8 +131,7 @@ elif (evt.eventKey == 'ifInErrors_ifInErrors|Errors'
             )
 
 # Discard threshold
-elif (evt.eventKey == 'ifInDiscards_ifInDiscards|Drops'
-      or evt.eventKey == 'ifOutDiscards_ifOutDiscards|Drops'):
+elif evt.eventKey.endswith('Discards|Drops'):
     if current < 1:
         current = current * 60
         time = 'minute'
